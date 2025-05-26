@@ -92,8 +92,6 @@ enum Opcode {
     MovImmToReg,
     MovMemToAcc,
     MovAccToMem,
-    MovRegMemToSegReg,
-    MovSegRegToRegMem,
     AddRegMemWithRegToEither,
     AddImmToRegMem,
     AddImmToAcc,
@@ -105,6 +103,11 @@ enum Opcode {
     CmpImmWithRegMem,
     CmpImmWithAcc,
     Jle,
+    Jl,
+    Jne,
+    IncReg,
+    DecReg,
+    Hlt,
     Unkown,
 }
 
@@ -138,8 +141,6 @@ impl From<u8> for Opcode {
             0xC6 | 0xC7 => Opcode::MovImmToRegMem,
             0xA0..=0xA1 => Opcode::MovMemToAcc,
             0xA2..=0xA3 => Opcode::MovAccToMem,
-            0x8C => Opcode::MovSegRegToRegMem,
-            0x8E => Opcode::MovRegMemToSegReg,
             0x00..=0x03 => Opcode::AddRegMemWithRegToEither,
             0x04..=0x05 => Opcode::AddImmToAcc,
             0x80..=0x83 if (value & 0x38) == 0x00 => Opcode::AddImmToRegMem,
@@ -151,6 +152,11 @@ impl From<u8> for Opcode {
             0x80..=0x83 if (value & 0x38) == 0x38 => Opcode::CmpImmWithRegMem,
             0xEB => Opcode::JmpShort,
             0x7E => Opcode::Jle,
+            0x7C => Opcode::Jl,
+            0x75 => Opcode::Jne,
+            0x40..=0x47 => Opcode::IncReg,
+            0x48..=0x4F => Opcode::DecReg,
+            0xF4 => Opcode::Hlt,
             _ => {
                 println!("Unknown {:0x}", value);
                 return Opcode::Unkown;
@@ -174,13 +180,16 @@ enum ArithmeticOp {
 
 #[allow(dead_code)]
 pub struct CPU {
-    registers: [u16; 9],
+    registers: [u16; 13],  // AX through SS (0-12)
     flags: u16,
     memory: [u8; 65536],  // 64KB for 8086
     stack: [u16; 16],
     instruction_log: Vec<String>,
     execute_mode: bool,  // true for execution, false for disassembly only
     program_size: u16,   // Size of loaded program
+    video_buffer: [[char; VIDEO_WIDTH as usize]; VIDEO_HEIGHT as usize],
+    video_dirty: bool,
+    log_instructions: bool,  // Whether to log instructions (disabled in video mode)
 }
 
 // Flags register bits
@@ -191,17 +200,26 @@ const FLAG_ZERO: u16 = 0x0040;
 const FLAG_SIGN: u16 = 0x0080;
 const FLAG_OVERFLOW: u16 = 0x0800;
 
+// Video memory constants
+const VIDEO_WIDTH: u16 = 80;
+const VIDEO_HEIGHT: u16 = 25;
+
 impl CPU {
     pub fn new() -> CPU {
-        CPU {
-            registers: [0; 9],
+        let cpu = CPU {
+            registers: [0; 13],
             memory: [0; 65536],
             stack: [0; 16],
             flags: 0,
             instruction_log: Vec::new(),
             execute_mode: false,
             program_size: 0,
-        }
+            video_buffer: [[' '; VIDEO_WIDTH as usize]; VIDEO_HEIGHT as usize],
+            video_dirty: false,
+            log_instructions: true,
+        };
+        
+        cpu
     }
 
     pub fn set_execute_mode(&mut self, mode: bool) {
@@ -210,6 +228,16 @@ impl CPU {
 
     pub fn set_program_size(&mut self, size: u16) {
         self.program_size = size;
+    }
+
+    pub fn set_log_instructions(&mut self, log: bool) {
+        self.log_instructions = log;
+    }
+
+    fn log_instruction(&mut self, instruction: String) {
+        if self.log_instructions {
+            self.instruction_log.push(instruction);
+        }
     }
 
     pub fn read_register(&self, register: Register) -> u16 {
@@ -387,7 +415,7 @@ impl CPU {
 
                         let log_entry =
                             format!("MOV {}, {}", destination.as_str(), source.as_str());
-                        self.instruction_log.push(log_entry);
+                        self.log_instruction(log_entry);
                         
                         if self.execute_mode {
                             let value = self.read_register(source);
@@ -414,7 +442,7 @@ impl CPU {
                         };
 
                         let log_entry = format!("MOV {}, {}", dest_str, source_str);
-                        self.instruction_log.push(log_entry);
+                        self.log_instruction(log_entry);
                         
                         if self.execute_mode {
                             match instr.direction {
@@ -458,7 +486,7 @@ impl CPU {
                         };
 
                         let log_entry = format!("MOV {}, {}", dest_str, source_str);
-                        self.instruction_log.push(log_entry);
+                        self.log_instruction(log_entry);
                         
                         if self.execute_mode {
                             match instr.direction {
@@ -501,7 +529,7 @@ impl CPU {
                         };
 
                         let log_entry = format!("MOV {}, {}", dest_str, source_str);
-                        self.instruction_log.push(log_entry);
+                        self.log_instruction(log_entry);
                         
                         if self.execute_mode {
                             match instr.direction {
@@ -539,7 +567,7 @@ impl CPU {
                 };
 
                 let log_entry = format!("MOV {}, {}", destination.as_str(), source);
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
                 
                 if self.execute_mode {
                     self.write_register(destination, source as u16);
@@ -558,7 +586,7 @@ impl CPU {
                         let data = self.read_data_byte();
 
                         let log_entry = format!("MOV [{}], byte {}", addr_str, data);
-                        self.instruction_log.push(log_entry);
+                        self.log_instruction(log_entry);
                         
                         if self.execute_mode {
                             self.write_memory_byte(addr_val, data as u8);
@@ -575,7 +603,7 @@ impl CPU {
                         } else {
                             format!("MOV [{}], word {}", addr_str, data)
                         };
-                        self.instruction_log.push(log_entry);
+                        self.log_instruction(log_entry);
                         
                         if self.execute_mode {
                             self.write_memory_word(addr_val, data as u16);
@@ -586,14 +614,16 @@ impl CPU {
             }
 
             Opcode::MovMemToAcc => {
-                let (accumulator, addr) = if instr.width == Width::Byte {
-                    (Register::AL, self.read_data_byte() as u16)
+                // For both byte and word moves, the address is 16-bit
+                let addr = self.read_data_long() as u16;
+                let accumulator = if instr.width == Width::Byte {
+                    Register::AL
                 } else {
-                    (Register::AX, self.read_data_long() as u16)
+                    Register::AX
                 };
 
                 let log_entry = format!("MOV {}, [{}]", accumulator.as_str(), addr);
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
                 
                 if self.execute_mode {
                     let value = if instr.width == Width::Byte {
@@ -606,14 +636,16 @@ impl CPU {
             }
 
             Opcode::MovAccToMem => {
-                let (accumulator, addr) = if instr.width == Width::Byte {
-                    (Register::AL, self.read_data_byte() as u16)
+                // For both byte and word moves, the address is 16-bit
+                let addr = self.read_data_long() as u16;
+                let accumulator = if instr.width == Width::Byte {
+                    Register::AL
                 } else {
-                    (Register::AX, self.read_data_long() as u16)
+                    Register::AX
                 };
 
                 let log_entry = format!("MOV [{}], {}", addr, accumulator.as_str());
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
                 
                 if self.execute_mode {
                     let value = self.read_register(accumulator);
@@ -630,7 +662,7 @@ impl CPU {
                 let target = (self.read_register(Register::IP) as i16 + offset as i16) as u16;
                 
                 let log_entry = format!("JMP short {}", offset);
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
                 
                 if self.execute_mode {
                     self.write_register(Register::IP, target);
@@ -676,7 +708,7 @@ impl CPU {
             Opcode::Jle => {
                 let offset = self.read_data_byte();
                 let log_entry = format!("JLE {}", offset);
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
                 
                 if self.execute_mode {
                     // Jump if ZF=1 OR SF≠OF
@@ -691,9 +723,86 @@ impl CPU {
                 }
             }
             
+            Opcode::Jl => {
+                let offset = self.read_data_byte();
+                let log_entry = format!("JL {}", offset);
+                self.log_instruction(log_entry);
+                
+                if self.execute_mode {
+                    // Jump if SF≠OF (less than)
+                    let sign_flag = (self.flags & FLAG_SIGN) != 0;
+                    let overflow_flag = (self.flags & FLAG_OVERFLOW) != 0;
+                    
+                    if sign_flag != overflow_flag {
+                        let target = (self.read_register(Register::IP) as i16 + offset as i16) as u16;
+                        self.write_register(Register::IP, target);
+                    }
+                }
+            }
+            
+            Opcode::Jne => {
+                let offset = self.read_data_byte();
+                let log_entry = format!("JNE {}", offset);
+                self.log_instruction(log_entry);
+                
+                if self.execute_mode {
+                    // Jump if ZF=0 (not equal)
+                    let zero_flag = (self.flags & FLAG_ZERO) != 0;
+                    
+                    if !zero_flag {
+                        let target = (self.read_register(Register::IP) as i16 + offset as i16) as u16;
+                        self.write_register(Register::IP, target);
+                    }
+                }
+            }
+            
+            Opcode::IncReg => {
+                let reg = Register::from_ireg(Width::Word, instruction & 0x07);
+                let log_entry = format!("INC {}", reg.as_str());
+                self.log_instruction(log_entry);
+                
+                if self.execute_mode {
+                    let value = self.read_register(reg);
+                    let result = value.wrapping_add(1);
+                    self.write_register(reg, result);
+                    
+                    // Set flags (INC doesn't affect carry flag)
+                    self.set_flags_for_result(result as u32, Width::Word);
+                    let overflow = ((value ^ result) & 0x8000) != 0 && (value & 0x8000) == 0;
+                    self.set_flag(FLAG_OVERFLOW, overflow);
+                }
+            }
+            
+            Opcode::DecReg => {
+                let reg = Register::from_ireg(Width::Word, instruction & 0x07);
+                let log_entry = format!("DEC {}", reg.as_str());
+                self.log_instruction(log_entry);
+                
+                if self.execute_mode {
+                    let value = self.read_register(reg);
+                    let result = value.wrapping_sub(1);
+                    self.write_register(reg, result);
+                    
+                    // Set flags (DEC doesn't affect carry flag)
+                    self.set_flags_for_result(result as u32, Width::Word);
+                    let overflow = ((value ^ result) & 0x8000) != 0 && (value & 0x8000) != 0;
+                    self.set_flag(FLAG_OVERFLOW, overflow);
+                }
+            }
+            
+            Opcode::Hlt => {
+                let log_entry = "HLT".to_string();
+                self.log_instruction(log_entry);
+                
+                if self.execute_mode {
+                    // HLT instruction stops execution
+                    panic!("HLT instruction executed");
+                }
+            }
+            
             _ => {
                 let log_entry = format!("{:#?}", instr.opcode);
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
                 panic!("Unknown instruction");
             }
         }
@@ -727,6 +836,14 @@ impl CPU {
     // Function to write a byte to memory
     pub fn write_memory_byte(&mut self, address: u16, value: u8) {
         self.memory[address as usize] = value;
+        
+        // For testing: map addresses 2000-3999 to video memory
+        // TODO(Alin): Implement proper segmentation to handle real VGA text mode at 0xB8000
+        // Physical address would be (0xB800 << 4) + offset = 0xB8000
+        // See: https://wiki.osdev.org/Printing_To_Screen
+        if address >= 2000 && address < 2000 + (VIDEO_WIDTH * VIDEO_HEIGHT) {
+            self.handle_video_write(address - 2000, value);
+        }
     }
 
     fn get_register_half(&self, reg: Register, high: bool) -> u16 {
@@ -820,7 +937,7 @@ impl CPU {
                 };
 
                 let log_entry = format!("{} {}, {}", op_str, destination.as_str(), source.as_str());
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
 
                 if self.execute_mode {
                     let src_val = self.read_register(source);
@@ -880,7 +997,7 @@ impl CPU {
                 };
 
                 let log_entry = format!("{} {}, {}", op_str, dest_str, source_str);
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
 
                 if self.execute_mode {
                     match instr.direction {
@@ -965,7 +1082,7 @@ impl CPU {
         };
 
         let log_entry = format!("{} {}, {}", op_str, acc_reg.as_str(), imm_val as i16);
-        self.instruction_log.push(log_entry);
+        self.log_instruction(log_entry);
 
         if self.execute_mode {
             let acc_val = self.read_register(acc_reg);
@@ -1016,7 +1133,7 @@ impl CPU {
             };
 
             let log_entry = format!("{} {}, {}", op_str, reg.as_str(), imm_val as i16);
-            self.instruction_log.push(log_entry);
+            self.log_instruction(log_entry);
 
             if self.execute_mode {
                 let reg_val = self.read_register(reg);
@@ -1078,7 +1195,7 @@ impl CPU {
 
             let size_prefix = if instr.width == Width::Byte { "byte " } else { "word " };
             let log_entry = format!("{} {}{}, {}", op_str, size_prefix, addr_str, imm_val as i16);
-            self.instruction_log.push(log_entry);
+            self.log_instruction(log_entry);
 
             if self.execute_mode {
                 let mem_val = if instr.width == Width::Byte {
@@ -1127,7 +1244,7 @@ impl CPU {
                 let reg2 = Register::from_ireg(instr.width, ireg);
 
                 let log_entry = format!("CMP {}, {}", reg1.as_str(), reg2.as_str());
-                self.instruction_log.push(log_entry);
+                self.log_instruction(log_entry);
 
                 if self.execute_mode {
                     let val1 = self.read_register(reg1);
@@ -1156,7 +1273,7 @@ impl CPU {
         };
 
         let log_entry = format!("CMP {}, {}", acc_reg.as_str(), imm_val as i16);
-        self.instruction_log.push(log_entry);
+        self.log_instruction(log_entry);
 
         if self.execute_mode {
             let acc_val = self.read_register(acc_reg);
@@ -1190,7 +1307,7 @@ impl CPU {
             };
 
             let log_entry = format!("CMP {}, {}", reg.as_str(), imm_val as i16);
-            self.instruction_log.push(log_entry);
+            self.log_instruction(log_entry);
 
             if self.execute_mode {
                 let reg_val = self.read_register(reg);
@@ -1205,5 +1322,55 @@ impl CPU {
         } else {
             panic!("CMP immediate with memory not yet implemented");
         }
+    }
+    
+    // Handle writes to video memory
+    fn handle_video_write(&mut self, offset: u16, value: u8) {
+        // Simple: treat each byte as a character (ignore attributes)
+        if offset < (VIDEO_WIDTH * VIDEO_HEIGHT) {
+            let row = offset / VIDEO_WIDTH;
+            let col = offset % VIDEO_WIDTH;
+            self.video_buffer[row as usize][col as usize] = value as char;
+            self.video_dirty = true;
+        }
+    }
+    
+    // Display the video buffer (for debugging)
+    pub fn dump_video(&self) {
+        if !self.video_dirty {
+            return;
+        }
+        
+        println!("\n=== VIDEO DISPLAY ===");
+        println!("┌{}┐", "─".repeat(VIDEO_WIDTH as usize));
+        for row in 0..VIDEO_HEIGHT {
+            print!("│");
+            for col in 0..VIDEO_WIDTH {
+                print!("{}", self.video_buffer[row as usize][col as usize]);
+            }
+            println!("│");
+        }
+        println!("└{}┘", "─".repeat(VIDEO_WIDTH as usize));
+    }
+    
+    // Clear video buffer
+    pub fn clear_video(&mut self) {
+        self.video_buffer = [[' '; VIDEO_WIDTH as usize]; VIDEO_HEIGHT as usize];
+        self.video_dirty = true;
+    }
+    
+    // Get video buffer for display
+    pub fn get_video_buffer(&self) -> &[[char; VIDEO_WIDTH as usize]; VIDEO_HEIGHT as usize] {
+        &self.video_buffer
+    }
+    
+    // Check if video has been updated
+    pub fn is_video_dirty(&self) -> bool {
+        self.video_dirty
+    }
+    
+    // Clear video dirty flag
+    pub fn clear_video_dirty(&mut self) {
+        self.video_dirty = false;
     }
 }
