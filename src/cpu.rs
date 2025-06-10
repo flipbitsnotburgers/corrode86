@@ -83,6 +83,16 @@ impl Register {
             }
         }
     }
+
+    fn from_seg_reg(seg_reg: u8) -> Register {
+        match seg_reg & 0x03 {
+            0x00 => Register::ES,
+            0x01 => Register::CS,
+            0x02 => Register::SS,
+            0x03 => Register::DS,
+            _ => panic!("Invalid segment register"),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
@@ -92,6 +102,8 @@ enum Opcode {
     MovImmToReg,
     MovMemToAcc,
     MovAccToMem,
+    MovRegMemToSegReg,
+    MovSegRegToRegMem,
     AddRegMemWithRegToEither,
     AddImmToRegMem,
     AddImmToAcc,
@@ -141,6 +153,8 @@ impl From<u8> for Opcode {
             0xC6 | 0xC7 => Opcode::MovImmToRegMem,
             0xA0..=0xA1 => Opcode::MovMemToAcc,
             0xA2..=0xA3 => Opcode::MovAccToMem,
+            0x8C => Opcode::MovSegRegToRegMem,
+            0x8E => Opcode::MovRegMemToSegReg,
             0x00..=0x03 => Opcode::AddRegMemWithRegToEither,
             0x04..=0x05 => Opcode::AddImmToAcc,
             0x80..=0x83 if (value & 0x38) == 0x00 => Opcode::AddImmToRegMem,
@@ -182,7 +196,7 @@ enum ArithmeticOp {
 pub struct CPU {
     registers: [u16; 13],  // AX through SS (0-12)
     flags: u16,
-    memory: [u8; 65536],  // 64KB for 8086
+    memory: Box<[u8; 1048576]>,  // 1MB for full 8086 address space
     stack: [u16; 16],
     instruction_log: Vec<String>,
     execute_mode: bool,  // true for execution, false for disassembly only
@@ -190,6 +204,7 @@ pub struct CPU {
     video_buffer: [[char; VIDEO_WIDTH as usize]; VIDEO_HEIGHT as usize],
     video_dirty: bool,
     log_instructions: bool,  // Whether to log instructions (disabled in video mode)
+    segment_override: Option<Register>,
 }
 
 // Flags register bits
@@ -204,11 +219,14 @@ const FLAG_OVERFLOW: u16 = 0x0800;
 const VIDEO_WIDTH: u16 = 80;
 const VIDEO_HEIGHT: u16 = 25;
 
+// Memory size constants
+const ONE_MEBIBYTE: usize = 1 << 20;
+
 impl CPU {
     pub fn new() -> CPU {
         let cpu = CPU {
             registers: [0; 13],
-            memory: [0; 65536],
+            memory: Box::new([0; ONE_MEBIBYTE]),
             stack: [0; 16],
             flags: 0,
             instruction_log: Vec::new(),
@@ -217,6 +235,7 @@ impl CPU {
             video_buffer: [[' '; VIDEO_WIDTH as usize]; VIDEO_HEIGHT as usize],
             video_dirty: false,
             log_instructions: true,
+            segment_override: None,
         };
         
         cpu
@@ -277,14 +296,17 @@ impl CPU {
     }
 
     pub fn fetch_instruction(&mut self) -> u8 {
-        let address = self.registers[Register::IP as usize];
-        if address >= self.program_size {
+        let ip = self.registers[Register::IP as usize];
+        let cs = self.registers[Register::CS as usize];
+        let physical_address = self.calculate_physical_address(cs, ip);
+        
+        if ip >= self.program_size {
             panic!("End of program");
         }
-        let instr = self.memory[address as usize];
-
+        
+        let instr = self.memory[physical_address as usize];
         self.registers[Register::IP as usize] += 1;
-
+        
         instr
     }
 
@@ -316,16 +338,42 @@ impl CPU {
     }
 
     fn ea_calc(&mut self, irm: u8) -> String {
-        match irm {
-            0b000 => format!("BX + SI"),
-            0b001 => format!("BX + DI"),
-            0b010 => format!("BP + SI"),
-            0b011 => format!("BP + DI"),
-            0b100 => format!("SI"),
-            0b101 => format!("DI"),
-            0b110 => format!("BP"),
-            0b111 => format!("BX"),
+        self.ea_calc_with_segment(irm, None)
+    }
+
+    fn ea_calc_with_segment(&mut self, irm: u8, segment_override: Option<Register>) -> String {
+        let default_segment = match irm {
+            0b010 | 0b011 | 0b110 => Register::SS,
+            _ => Register::DS,
+        };
+
+        let segment = segment_override.or(self.segment_override).unwrap_or(default_segment);
+        let address = match irm {
+            0b000 => "BX + SI".to_string(),
+            0b001 => "BX + DI".to_string(),
+            0b010 => "BP + SI".to_string(),
+            0b011 => "BP + DI".to_string(),
+            0b100 => "SI".to_string(),
+            0b101 => "DI".to_string(),
+            0b110 => "BP".to_string(),
+            0b111 => "BX".to_string(),
             _ => panic!("invalid irm"),
+        };
+
+        format!("{}:{}", segment.as_str(), address)
+    }
+
+    fn calculate_physical_address(&self, segment: u16, offset: u16) -> u32 {
+        // 8086 physical address = (segment * 16) + offset
+        // This gives a 20-bit address (max 0xFFFFF = 1MB)
+        // https://wiki.osdev.org/Real_Mode
+        ((segment as u32) << 4).wrapping_add(offset as u32) & 0xFFFFF
+    }
+
+    fn get_default_segment(&self, irm: u8) -> Register {
+        match irm {
+            0b010 | 0b011 | 0b110 => Register::SS,
+            _ => Register::DS,
         }
     }
 
@@ -344,6 +392,13 @@ impl CPU {
         base.wrapping_add(displacement as u16)
     }
 
+    fn ea_calc_physical_address(&self, irm: u8, displacement: i16) -> u32 {
+        let offset = self.ea_calc_address(irm, displacement);
+        let segment_reg = self.segment_override.unwrap_or_else(|| self.get_default_segment(irm));
+        let segment = self.read_register(segment_reg);
+        self.calculate_physical_address(segment, offset)
+    }
+
     fn read_memory_word(&self, address: u16) -> u16 {
         let low = self.memory[address as usize] as u16;
         let high = self.memory[address.wrapping_add(1) as usize] as u16;
@@ -353,6 +408,34 @@ impl CPU {
     fn write_memory_word(&mut self, address: u16, value: u16) {
         self.memory[address as usize] = (value & 0xFF) as u8;
         self.memory[address.wrapping_add(1) as usize] = ((value >> 8) & 0xFF) as u8;
+    }
+
+    fn read_memory_byte_physical(&self, physical_address: u32) -> u8 {
+        self.memory[physical_address as usize]
+    }
+
+    fn write_memory_byte_physical(&mut self, physical_address: u32, value: u8) {
+        self.memory[physical_address as usize] = value;
+        
+        // Check if writing to video memory at 0xB8000 (text mode)
+        // https://wiki.osdev.org/Printing_To_Screen
+        if physical_address >= 0xB8000 && physical_address < 0xB8000 + (VIDEO_WIDTH * VIDEO_HEIGHT * 2) as u32 {
+            if physical_address & 1 == 0 {
+                let offset = (physical_address - 0xB8000) / 2;
+                self.handle_video_write(offset as u16, value);
+            }
+        }
+    }
+
+    fn read_memory_word_physical(&self, physical_address: u32) -> u16 {
+        let low = self.read_memory_byte_physical(physical_address) as u16;
+        let high = self.read_memory_byte_physical(physical_address.wrapping_add(1)) as u16;
+        (high << 8) | low
+    }
+
+    fn write_memory_word_physical(&mut self, physical_address: u32, value: u16) {
+        self.write_memory_byte_physical(physical_address, (value & 0xFF) as u8);
+        self.write_memory_byte_physical(physical_address.wrapping_add(1), ((value >> 8) & 0xFF) as u8);
     }
 
     fn set_flags_for_result(&mut self, result: u32, width: Width) {
@@ -423,16 +506,18 @@ impl CPU {
                         }
                     }
                     0b00 => {
-                        let (addr_str, addr_val) = if irm != 0b110 {
-                            let addr = self.ea_calc_address(irm, 0);
-                            (format!("[{}]", self.ea_calc(irm)), addr)
+                        let (addr_str, phys_addr) = if irm != 0b110 {
+                            let phys = self.ea_calc_physical_address(irm, 0);
+                            (format!("[{}]", self.ea_calc(irm)), phys)
                         } else {
-                            let data = if instr.width == Width::Byte {
+                            let disp = if instr.width == Width::Byte {
                                 self.read_data_byte() as i16
                             } else {
                                 self.read_data_long()
                             };
-                            (format!("[{}]", data), data as u16)
+                            let segment = self.segment_override.unwrap_or(Register::DS);
+                            let phys = self.calculate_physical_address(self.read_register(segment), disp as u16);
+                            (format!("[{}]", disp), phys)
                         };
                         
                         let reg = Register::from_ireg(instr.width, ireg);
@@ -449,16 +534,16 @@ impl CPU {
                                 Direction::To => {
                                     let value = self.read_register(reg);
                                     if instr.width == Width::Byte {
-                                        self.write_memory_byte(addr_val, value as u8);
+                                        self.write_memory_byte_physical(phys_addr, value as u8);
                                     } else {
-                                        self.write_memory_word(addr_val, value);
+                                        self.write_memory_word_physical(phys_addr, value);
                                     }
                                 }
                                 Direction::From => {
                                     let value = if instr.width == Width::Byte {
-                                        self.read_memory_byte(addr_val) as u16
+                                        self.read_memory_byte_physical(phys_addr) as u16
                                     } else {
-                                        self.read_memory_word(addr_val)
+                                        self.read_memory_word_physical(phys_addr)
                                     };
                                     self.write_register(reg, value);
                                 }
@@ -469,7 +554,7 @@ impl CPU {
                     0b01 => {
                         let addr_base = self.ea_calc(irm);
                         let disp = self.read_data_byte();
-                        let addr_val = self.ea_calc_address(irm, disp as i16);
+                        let phys_addr = self.ea_calc_physical_address(irm, disp as i16);
 
                         let addr_str = if disp == 0 {
                             format!("[{}]", addr_base)
@@ -493,16 +578,16 @@ impl CPU {
                                 Direction::To => {
                                     let value = self.read_register(reg);
                                     if instr.width == Width::Byte {
-                                        self.write_memory_byte(addr_val, value as u8);
+                                        self.write_memory_byte_physical(phys_addr, value as u8);
                                     } else {
-                                        self.write_memory_word(addr_val, value);
+                                        self.write_memory_word_physical(phys_addr, value);
                                     }
                                 }
                                 Direction::From => {
                                     let value = if instr.width == Width::Byte {
-                                        self.read_memory_byte(addr_val) as u16
+                                        self.read_memory_byte_physical(phys_addr) as u16
                                     } else {
-                                        self.read_memory_word(addr_val)
+                                        self.read_memory_word_physical(phys_addr)
                                     };
                                     self.write_register(reg, value);
                                 }
@@ -512,7 +597,7 @@ impl CPU {
                     0b10 => {
                         let addr_base = self.ea_calc(irm);
                         let disp = self.read_data_long();
-                        let addr_val = self.ea_calc_address(irm, disp);
+                        let phys_addr = self.ea_calc_physical_address(irm, disp);
                         
                         let addr_str = if disp == 0 {
                             format!("[{}]", addr_base)
@@ -536,16 +621,16 @@ impl CPU {
                                 Direction::To => {
                                     let value = self.read_register(reg);
                                     if instr.width == Width::Byte {
-                                        self.write_memory_byte(addr_val, value as u8);
+                                        self.write_memory_byte_physical(phys_addr, value as u8);
                                     } else {
-                                        self.write_memory_word(addr_val, value);
+                                        self.write_memory_word_physical(phys_addr, value);
                                     }
                                 }
                                 Direction::From => {
                                     let value = if instr.width == Width::Byte {
-                                        self.read_memory_byte(addr_val) as u16
+                                        self.read_memory_byte_physical(phys_addr) as u16
                                     } else {
-                                        self.read_memory_word(addr_val)
+                                        self.read_memory_word_physical(phys_addr)
                                     };
                                     self.write_register(reg, value);
                                 }
@@ -626,10 +711,12 @@ impl CPU {
                 self.log_instruction(log_entry);
                 
                 if self.execute_mode {
+                    let segment = self.segment_override.unwrap_or(Register::DS);
+                    let phys_addr = self.calculate_physical_address(self.read_register(segment), addr);
                     let value = if instr.width == Width::Byte {
-                        self.read_memory_byte(addr) as u16
+                        self.read_memory_byte_physical(phys_addr) as u16
                     } else {
-                        self.read_memory_word(addr)
+                        self.read_memory_word_physical(phys_addr)
                     };
                     self.write_register(accumulator, value);
                 }
@@ -648,11 +735,13 @@ impl CPU {
                 self.log_instruction(log_entry);
                 
                 if self.execute_mode {
+                    let segment = self.segment_override.unwrap_or(Register::DS);
+                    let phys_addr = self.calculate_physical_address(self.read_register(segment), addr);
                     let value = self.read_register(accumulator);
                     if instr.width == Width::Byte {
-                        self.write_memory_byte(addr, value as u8);
+                        self.write_memory_byte_physical(phys_addr, value as u8);
                     } else {
-                        self.write_memory_word(addr, value);
+                        self.write_memory_word_physical(phys_addr, value);
                     }
                 }
             }
@@ -800,6 +889,50 @@ impl CPU {
                 }
             }
             
+            Opcode::MovRegMemToSegReg => {
+                let byte = self.fetch_instruction();
+                let imod = (byte & 0b1100_0000) >> 6;
+                let seg_reg = (byte & 0b0011_1000) >> 3;
+                let irm = byte & 0b0000_0111;
+                
+                let segment = Register::from_seg_reg(seg_reg);
+                
+                if imod == 0b11 {
+                    let reg = Register::from_ireg(Width::Word, irm);
+                    let log_entry = format!("MOV {}, {}", segment.as_str(), reg.as_str());
+                    self.log_instruction(log_entry);
+                    
+                    if self.execute_mode {
+                        let value = self.read_register(reg);
+                        self.write_register(segment, value);
+                    }
+                } else {
+                    panic!("MOV memory to segment register not yet implemented");
+                }
+            }
+            
+            Opcode::MovSegRegToRegMem => {
+                let byte = self.fetch_instruction();
+                let imod = (byte & 0b1100_0000) >> 6;
+                let seg_reg = (byte & 0b0011_1000) >> 3;
+                let irm = byte & 0b0000_0111;
+                
+                let segment = Register::from_seg_reg(seg_reg);
+                
+                if imod == 0b11 {
+                    let reg = Register::from_ireg(Width::Word, irm);
+                    let log_entry = format!("MOV {}, {}", reg.as_str(), segment.as_str());
+                    self.log_instruction(log_entry);
+                    
+                    if self.execute_mode {
+                        let value = self.read_register(segment);
+                        self.write_register(reg, value);
+                    }
+                } else {
+                    panic!("MOV segment register to memory not yet implemented");
+                }
+            }
+            
             _ => {
                 let log_entry = format!("{:#?}", instr.opcode);
                 self.log_instruction(log_entry);
@@ -808,10 +941,29 @@ impl CPU {
         }
     }
 
+    fn handle_segment_override(&mut self, instruction: u8) -> bool {
+        match instruction {
+            0x26 => { self.segment_override = Some(Register::ES); true },
+            0x2E => { self.segment_override = Some(Register::CS); true },
+            0x36 => { self.segment_override = Some(Register::SS); true },
+            0x3E => { self.segment_override = Some(Register::DS); true },
+            _ => false,
+        }
+    }
+
     // Combine fetch, decode, and execute for simplicity
     pub fn execute_next_instruction(&mut self) {
-        let instr = self.fetch_instruction();
+        let mut instr = self.fetch_instruction();
+        
+        // Handle segment override prefixes
+        while self.handle_segment_override(instr) {
+            instr = self.fetch_instruction();
+        }
+        
         self.execute_instruction(instr);
+        
+        // Clear segment override after instruction execution
+        self.segment_override = None;
     }
 
     // Function to read a byte from memory
@@ -833,17 +985,12 @@ impl CPU {
         data
     }
 
-    // Function to write a byte to memory
+    // Function to write a byte to memory (used for loading programs)
     pub fn write_memory_byte(&mut self, address: u16, value: u8) {
-        self.memory[address as usize] = value;
-        
-        // For testing: map addresses 2000-3999 to video memory
-        // TODO(Alin): Implement proper segmentation to handle real VGA text mode at 0xB8000
-        // Physical address would be (0xB800 << 4) + offset = 0xB8000
-        // See: https://wiki.osdev.org/Printing_To_Screen
-        if address >= 2000 && address < 2000 + (VIDEO_WIDTH * VIDEO_HEIGHT) {
-            self.handle_video_write(address - 2000, value);
-        }
+        // During program loading, we write to CS:IP physical address
+        let cs = self.registers[Register::CS as usize];
+        let physical_address = self.calculate_physical_address(cs, address);
+        self.memory[physical_address as usize] = value;
     }
 
     fn get_register_half(&self, reg: Register, high: bool) -> u16 {
@@ -1373,4 +1520,5 @@ impl CPU {
     pub fn clear_video_dirty(&mut self) {
         self.video_dirty = false;
     }
+    
 }

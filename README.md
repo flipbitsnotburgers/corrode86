@@ -6,11 +6,10 @@ An 8086 instruction decoder/disassembler and simulator written in Rust.
 
 ## Features
 
-- Disassembles 8086 binary files
-- Simulates instruction execution with register state tracking
-- Verifies disassembly matches original assembly source
-- Memory-mapped video display (text mode 80x25) with terminal output
-- Simple text-mode video with ANSI colors
+- **Complete 8086 segmented memory model** with 1MB address space and segment:offset addressing
+- **Video memory mapping** at physical address 0xB8000 with terminal output
+- **Full instruction simulation** with register state tracking and flag handling
+- **Binary disassembly** with segment register display and source verification
 
 ## Quick Start
 
@@ -45,13 +44,13 @@ nasm -f bin asm/asteroids_simple.asm -o asm/asteroids_simple.bin
 
 ## Video Display
 
-The emulator includes a simple text-mode video display that maps memory addresses 2000-3999 to an 80x25 character display. The video output is rendered in the terminal using ANSI escape codes for colors:
+The emulator maps video memory at physical address 0xB8000 (standard text mode location). Characters are displayed in an 80x25 terminal window using ANSI escape codes for colors:
 
 - White text for letters (A-Z)
 - Yellow for asterisks (*)
 - Green for the ship (^)
 
-Memory mapping: Address = Row * 80 + Column + 2000
+Video memory layout: Physical Address = 0xB8000 + (Row * 80 + Column) * 2
 
 ## Implemented Instructions
 
@@ -63,8 +62,6 @@ Memory mapping: Address = Row * 80 + Column + 2000
 - HLT (halt)
 
 ## TODO
-
-- **Implement proper segmentation**: Add segment:offset addressing to access real VGA text mode memory at 0xB8000 (currently using simplified memory mapping at addresses 100-2099)
 - **Graphical video display**: Add option to use minifb or SDL2 for a graphical window display instead of terminal output
 - **MUL/DIV instructions**: Implement multiplication and division operations (MUL, IMUL, DIV, IDIV)
 - **Keyboard input**: Implement keyboard handling via:
