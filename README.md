@@ -2,7 +2,7 @@
 
 An 8086 instruction decoder/disassembler and simulator written in Rust.
 
-![Asteroids Demo](docs/asteroids_demo.gif)
+![Asteroids Demo](docs/images/asteroids_demo.gif)
 
 ## Features
 

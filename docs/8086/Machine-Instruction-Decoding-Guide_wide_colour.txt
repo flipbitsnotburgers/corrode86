@@ -1,0 +1,385 @@
+ HEX |   BINARY   |  OCT  |  2nd BYTE   |    BYTES 3,4,5,6                    |      ASM-86 INSTRUCTION FORMAT
+======================================================================================================================
+  00 | 0000  0000 |  [1;32m000[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADD[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  01 | 0000  0001 |  [1;32m001[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADD[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  02 | 0000  0010 |  [1;32m002[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADD[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  03 | 0000  0011 |  [1;32m003[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADD[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  04 | 0000  0100 |  [1;32m004[0m  | DATA-8      |                                     | [0;32mADD[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  05 | 0000  0101 |  [1;32m005[0m  | DATA-LO     | DATA-HI                             | [0;32mADD[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  06 | 0000  0110 |  [1;32m006[0m  |             |                                     | [0;32mPUSH[0m        [0;31mES[0m
+  07 | 0000  0111 |  [1;32m007[0m  |             |                                     | [0;32mPOP[0m         [0;31mES[0m
+  08 | 0000  1000 |  [1;32m010[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mOR[0m          [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  09 | 0000  1001 |  [1;32m011[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mOR[0m          [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  0A | 0000  1010 |  [1;32m012[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mOR[0m          [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  0B | 0000  1011 |  [1;32m013[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mOR[0m          [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  0C | 0000  1100 |  [1;32m014[0m  | DATA-8      |                                     | [0;32mOR[0m          [0;31mAL[0m,          [0;34mIMMED8[0m
+  0D | 0000  1101 |  [1;32m015[0m  | DATA-LO     | DATA-HI                             | [0;32mOR[0m          [0;31mAX[0m,          [0;34mIMMED16[0m
+  0E | 0000  1110 |  [1;32m016[0m  |             |                                     | [0;32mPUSH[0m        [0;31mCS[0m
+[2m  0F | 0000  1111 |  017  |             |                                     | (not used)[0m
+  10 | 0001  0000 |  [1;32m020[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADC[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  11 | 0001  0001 |  [1;32m021[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADC[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  12 | 0001  0010 |  [1;32m022[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADC[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  13 | 0001  0011 |  [1;32m023[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mADC[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  14 | 0001  0100 |  [1;32m024[0m  | DATA-8      |                                     | [0;32mADC[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  15 | 0001  0101 |  [1;32m025[0m  | DATA-LO     | DATA-HI                             | [0;32mADC[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  16 | 0001  0110 |  [1;32m026[0m  |             |                                     | [0;32mPUSH[0m        [0;31mSS[0m
+  17 | 0001  0111 |  [1;32m027[0m  |             |                                     | [0;32mPOP[0m         [0;31mSS[0m
+  18 | 0001  1000 |  [1;32m030[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSBB[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  19 | 0001  1001 |  [1;32m031[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSBB[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  1A | 0001  1010 |  [1;32m032[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSBB[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  1B | 0001  1011 |  [1;32m033[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSBB[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  1C | 0001  1100 |  [1;32m034[0m  | DATA-8      |                                     | [0;32mSBB[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  1D | 0001  1101 |  [1;32m035[0m  | DATA-LO     | DATA-HI                             | [0;32mSBB[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  1E | 0001  1110 |  [1;32m036[0m  |             |                                     | [0;32mPUSH[0m        [0;31mDS[0m
+  1F | 0001  1111 |  [1;32m037[0m  |             |                                     | [0;32mPOP[0m         [0;31mDS[0m
+  20 | 0010  0000 |  [1;32m040[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mAND[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  21 | 0010  0001 |  [1;32m041[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mAND[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  22 | 0010  0010 |  [1;32m042[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mAND[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  23 | 0010  0011 |  [1;32m043[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mAND[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  24 | 0010  0100 |  [1;32m044[0m  | DATA-8      |                                     | [0;32mAND[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  25 | 0010  0101 |  [1;32m045[0m  | DATA-LO     | DATA-HI                             | [0;32mAND[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  26 | 0010  0110 |  [1;32m046[0m  |             |                                     | ES:         (segment override prefix)
+  27 | 0010  0111 |  [1;32m047[0m  |             |                                     | [0;32mDAA[0m
+  28 | 0010  1000 |  [1;32m050[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSUB[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  29 | 0010  1001 |  [1;32m051[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSUB[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  2A | 0010  1010 |  [1;32m052[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSUB[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  2B | 0010  1011 |  [1;32m053[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mSUB[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  2C | 0010  1100 |  [1;32m054[0m  | DATA-8      |                                     | [0;32mSUB[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  2D | 0010  1101 |  [1;32m055[0m  | DATA-LO     | DATA-HI                             | [0;32mSUB[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  2E | 0010  1110 |  [1;32m056[0m  |             |                                     | CS:         (segment override prefix)
+  2F | 0010  1111 |  [1;32m057[0m  |             |                                     | [0;32mDAS[0m
+  30 | 0011  0000 |  [1;32m060[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mXOR[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  31 | 0011  0001 |  [1;32m061[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mXOR[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  32 | 0011  0010 |  [1;32m062[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mXOR[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  33 | 0011  0011 |  [1;32m063[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mXOR[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  34 | 0011  0100 |  [1;32m064[0m  | DATA-8      |                                     | [0;32mXOR[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  35 | 0011  0101 |  [1;32m065[0m  | DATA-LO     | DATA-HI                             | [0;32mXOR[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  36 | 0011  0110 |  [1;32m066[0m  |             |                                     | SS:         (segment override prefix)
+  37 | 0011  0111 |  [1;32m067[0m  |             |                                     | [0;32mAAA[0m
+  38 | 0011  1000 |  [1;32m070[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mCMP[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  39 | 0011  1001 |  [1;32m071[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mCMP[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  3A | 0011  1010 |  [1;32m072[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mCMP[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  3B | 0011  1011 |  [1;32m073[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mCMP[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  3C | 0011  1100 |  [1;32m074[0m  | DATA-8      |                                     | [0;32mCMP[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  3D | 0011  1101 |  [1;32m075[0m  | DATA-LO     | DATA-HI                             | [0;32mCMP[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  3E | 0011  1110 |  [1;32m076[0m  |             |                                     | DS:         (segment override prefix)
+  3F | 0011  1111 |  [1;32m077[0m  |             |                                     | [0;32mAAS[0m
+  40 | 0100  0000 |  [1;32m100[0m  |             |                                     | [0;32mINC[0m         [0;31mAX[0m
+  41 | 0100  0001 |  [1;32m101[0m  |             |                                     | [0;32mINC[0m         [0;31mCX[0m
+  42 | 0100  0010 |  [1;32m102[0m  |             |                                     | [0;32mINC[0m         [0;31mDX[0m
+  43 | 0100  0011 |  [1;32m103[0m  |             |                                     | [0;32mINC[0m         [0;31mBX[0m
+  44 | 0100  0100 |  [1;32m104[0m  |             |                                     | [0;32mINC[0m         [0;31mSP[0m
+  45 | 0100  0101 |  [1;32m105[0m  |             |                                     | [0;32mINC[0m         [0;31mBP[0m
+  46 | 0100  0110 |  [1;32m106[0m  |             |                                     | [0;32mINC[0m         [0;31mSI[0m
+  47 | 0100  0111 |  [1;32m107[0m  |             |                                     | [0;32mINC[0m         [0;31mDI[0m
+  48 | 0100  1000 |  [1;32m110[0m  |             |                                     | [0;32mDEC[0m         [0;31mAX[0m
+  49 | 0100  1001 |  [1;32m111[0m  |             |                                     | [0;32mDEC[0m         [0;31mCX[0m
+  4A | 0100  1010 |  [1;32m112[0m  |             |                                     | [0;32mDEC[0m         [0;31mDX[0m
+  4B | 0100  1011 |  [1;32m113[0m  |             |                                     | [0;32mDEC[0m         [0;31mBX[0m
+  4C | 0100  1100 |  [1;32m114[0m  |             |                                     | [0;32mDEC[0m         [0;31mSP[0m
+  4D | 0100  1101 |  [1;32m115[0m  |             |                                     | [0;32mDEC[0m         [0;31mBP[0m
+  4E | 0100  1110 |  [1;32m116[0m  |             |                                     | [0;32mDEC[0m         [0;31mSI[0m
+  4F | 0100  1111 |  [1;32m117[0m  |             |                                     | [0;32mDEC[0m         [0;31mDI[0m
+  50 | 0101  0000 |  [1;32m120[0m  |             |                                     | [0;32mPUSH[0m        [0;31mAX[0m
+  51 | 0101  0001 |  [1;32m121[0m  |             |                                     | [0;32mPUSH[0m        [0;31mCX[0m
+  52 | 0101  0010 |  [1;32m122[0m  |             |                                     | [0;32mPUSH[0m        [0;31mDX[0m
+  53 | 0101  0011 |  [1;32m123[0m  |             |                                     | [0;32mPUSH[0m        [0;31mBX[0m
+  54 | 0101  0100 |  [1;32m124[0m  |             |                                     | [0;32mPUSH[0m        [0;31mSP[0m
+  55 | 0101  0101 |  [1;32m125[0m  |             |                                     | [0;32mPUSH[0m        [0;31mBP[0m
+  56 | 0101  0110 |  [1;32m126[0m  |             |                                     | [0;32mPUSH[0m        [0;31mSI[0m
+  57 | 0101  0111 |  [1;32m127[0m  |             |                                     | [0;32mPUSH[0m        [0;31mDI[0m
+  58 | 0101  1000 |  [1;32m130[0m  |             |                                     | [0;32mPOP[0m         [0;31mAX[0m
+  59 | 0101  1001 |  [1;32m131[0m  |             |                                     | [0;32mPOP[0m         [0;31mCX[0m
+  5A | 0101  1010 |  [1;32m132[0m  |             |                                     | [0;32mPOP[0m         [0;31mDX[0m
+  5B | 0101  1011 |  [1;32m133[0m  |             |                                     | [0;32mPOP[0m         [0;31mBX[0m
+  5C | 0101  1100 |  [1;32m134[0m  |             |                                     | [0;32mPOP[0m         [0;31mSP[0m
+  5D | 0101  1101 |  [1;32m135[0m  |             |                                     | [0;32mPOP[0m         [0;31mBP[0m
+  5E | 0101  1110 |  [1;32m136[0m  |             |                                     | [0;32mPOP[0m         [0;31mSI[0m
+  5F | 0101  1111 |  [1;32m137[0m  |             |                                     | [0;32mPOP[0m         [0;31mDI[0m
+[2m  60 | 0110  0000 |  140  |             |                                     | (not used)[0m
+[2m  61 | 0110  0001 |  141  |             |                                     | (not used)[0m
+[2m  62 | 0110  0010 |  142  |             |                                     | (not used)[0m
+[2m  63 | 0110  0011 |  143  |             |                                     | (not used)[0m
+[2m  64 | 0110  0100 |  144  |             |                                     | (not used)[0m
+[2m  65 | 0110  0101 |  145  |             |                                     | (not used)[0m
+[2m  66 | 0110  0110 |  146  |             |                                     | (not used)[0m
+[2m  67 | 0110  0111 |  147  |             |                                     | (not used)[0m
+[2m  68 | 0110  1000 |  150  |             |                                     | (not used)[0m
+[2m  69 | 0110  1001 |  151  |             |                                     | (not used)[0m
+[2m  6A | 0110  1010 |  152  |             |                                     | (not used)[0m
+[2m  6B | 0110  1011 |  153  |             |                                     | (not used)[0m
+[2m  6C | 0110  1100 |  154  |             |                                     | (not used)[0m
+[2m  6D | 0110  1101 |  155  |             |                                     | (not used)[0m
+[2m  6E | 0110  1110 |  156  |             |                                     | (not used)[0m
+[2m  6F | 0110  1111 |  157  |             |                                     | (not used)[0m
+  70 | 0111  0000 |  [1;32m160[0m  | IP-INC8     |                                     | [0;32mJO[0m          [0;31mSHORT-LABEL[0m
+  71 | 0111  0001 |  [1;32m161[0m  | IP-INC8     |                                     | [0;32mJNO[0m         [0;31mSHORT-LABEL[0m
+  72 | 0111  0010 |  [1;32m162[0m  | IP-INC8     |                                     | [0;32mJB/JNAE/JC[0m  [0;31mSHORT-LABEL[0m
+  73 | 0111  0011 |  [1;32m163[0m  | IP-INC8     |                                     | [0;32mJNB/JAE/JNC[0m [0;31mSHORT-LABEL[0m
+  74 | 0111  0100 |  [1;32m164[0m  | IP-INC8     |                                     | [0;32mJE/JZ[0m       [0;31mSHORT-LABEL[0m
+  75 | 0111  0101 |  [1;32m165[0m  | IP-INC8     |                                     | [0;32mJNE/JNZ[0m     [0;31mSHORT-LABEL[0m
+  76 | 0111  0110 |  [1;32m166[0m  | IP-INC8     |                                     | [0;32mJBE/JNA[0m     [0;31mSHORT-LABEL[0m
+  77 | 0111  0111 |  [1;32m167[0m  | IP-INC8     |                                     | [0;32mJNBE/JA[0m     [0;31mSHORT-LABEL[0m
+  78 | 0111  1000 |  [1;32m170[0m  | IP-INC8     |                                     | [0;32mJS[0m          [0;31mSHORT-LABEL[0m
+  79 | 0111  1001 |  [1;32m171[0m  | IP-INC8     |                                     | [0;32mJNS[0m         [0;31mSHORT-LABEL[0m
+  7A | 0111  1010 |  [1;32m172[0m  | IP-INC8     |                                     | [0;32mJP/JPE[0m      [0;31mSHORT-LABEL[0m
+  7B | 0111  1011 |  [1;32m173[0m  | IP-INC8     |                                     | [0;32mJNP/JPO[0m     [0;31mSHORT-LABEL[0m
+  7C | 0111  1100 |  [1;32m174[0m  | IP-INC8     |                                     | [0;32mJL/JNGE[0m     [0;31mSHORT-LABEL[0m
+  7D | 0111  1101 |  [1;32m175[0m  | IP-INC8     |                                     | [0;32mJNL/JGE[0m     [0;31mSHORT-LABEL[0m
+  7E | 0111  1110 |  [1;32m176[0m  | IP-INC8     |                                     | [0;32mJLE/JNG[0m     [0;31mSHORT-LABEL[0m
+  7F | 0111  1111 |  [1;32m177[0m  | IP-INC8     |                                     | [0;32mJNLE/JG[0m     [0;31mSHORT-LABEL[0m
+     |            |       |             |                                     |
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mADD[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mOR[0m          [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mADC[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mSBB[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mAND[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mSUB[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m110[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mXOR[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  80 | 1000  0000 |  [1;32m200[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mCMP[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+     |            |       |             |                                     |
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mADD[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mOR[0m          [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mADC[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mSBB[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mAND[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mSUB[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m110[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mXOR[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+  81 | 1000  0001 |  [1;32m201[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mCMP[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+     |            |       |             |                                     |
+  82 | 1000  0010 |  [1;32m202[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mADD[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+[2m  82 | 1000  0010 |  202  | MOD 001 R/M |                                     | (not used)[0m
+  82 | 1000  0010 |  [1;32m202[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mADC[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+  82 | 1000  0010 |  [1;32m202[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mSBB[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+[2m  82 | 1000  0010 |  202  | MOD 100 R/M |                                     | (not used)[0m
+  82 | 1000  0010 |  [1;32m202[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mSUB[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+[2m  82 | 1000  0010 |  202  | MOD 110 R/M |                                     | (not used)[0m
+  82 | 1000  0010 |  [1;32m202[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mCMP[0m         [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+     |            |       |             |                                     |
+  83 | 1000  0011 |  [1;32m203[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-SX         | [0;32mADD[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED8[0m
+[2m  83 | 1000  0011 |  203  | MOD 001 R/M |                                     | (not used)[0m
+  83 | 1000  0011 |  [1;32m203[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI),DATA-SX         | [0;32mADC[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED8[0m
+  83 | 1000  0011 |  [1;32m203[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI),DATA-SX         | [0;32mSBB[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED8[0m
+[2m  83 | 1000  0011 |  203  | MOD 100 R/M |                                     | (not used)[0m
+  83 | 1000  0011 |  [1;32m203[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI),DATA-SX         | [0;32mSUB[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED8[0m
+[2m  83 | 1000  0011 |  203  | MOD 110 R/M |                                     | (not used)[0m
+  83 | 1000  0011 |  [1;32m203[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI),DATA-SX         | [0;32mCMP[0m         [0;31mREG16/MEM16[0m, [0;34mIMMED8[0m
+     |            |       |             |                                     |
+  84 | 1000  0100 |  [1;32m204[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mTEST[0m        [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  85 | 1000  0101 |  [1;32m205[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mTEST[0m        [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  86 | 1000  0110 |  [1;32m206[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mXCHG[0m        [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  87 | 1000  0111 |  [1;32m207[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mXCHG[0m        [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+  88 | 1000  1000 |  [1;32m210[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mMOV[0m         [0;31mREG8/MEM8[0m,   [0;34mREG8[0m
+  89 | 1000  1001 |  [1;32m211[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mMOV[0m         [0;31mREG16/MEM16[0m, [0;34mREG16[0m
+  8A | 1000  1010 |  [1;32m212[0m  | MOD [1;32m110[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mMOV[0m         [0;31mREG8[0m,        [0;34mREG8/MEM8[0m
+  8B | 1000  1011 |  [1;32m213[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mMOV[0m         [0;31mREG16[0m,       [0;34mREG16/MEM16[0m
+     |            |       |             |                                     |
+  8C | 1000  1100 |  [1;32m214[0m  | MOD 0SR R/M | (DISP-LO),(DISP-HI)                 | [0;32mMOV[0m         [0;31mREG16/MEM16[0m, [0;34mSEGREG[0m
+[2m  8C | 1000  1100 |  214  | MOD 1-- R/M |                                     | (not used)[0m
+     |            |       |             |                                     |
+  8D | 1000  1101 |  [1;32m215[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mLEA[0m         [0;31mREG16[0m,       [0;34mMEM16[0m
+     |            |       |             |                                     |
+  8E | 1000  1110 |  [1;32m216[0m  | MOD 0SR R/M | (DISP-LO),(DISP-HI)                 | [0;32mMOV[0m         [0;31mSEGREG[0m,      [0;34mREG16/MEM16[0m
+[2m  8E | 1000  1110 |  216  | MOD 1-- R/M |                                     | (not used)[0m
+     |            |       |             |                                     |
+  8F | 1000  1111 |  [1;32m217[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mPOP[0m         [0;31mREG16/MEM16[0m
+[2m  8F | 1000  1111 |  217  | MOD 001 R/M |                                     | (not used)[0m
+[2m  8F | 1000  1111 |  217  | MOD 010 R/M |                                     | (not used)[0m
+[2m  8F | 1000  1111 |  217  | MOD 011 R/M |                                     | (not used)[0m
+[2m  8F | 1000  1111 |  217  | MOD 100 R/M |                                     | (not used)[0m
+[2m  8F | 1000  1111 |  217  | MOD 101 R/M |                                     | (not used)[0m
+[2m  8F | 1000  1111 |  217  | MOD 110 R/M |                                     | (not used)[0m
+[2m  8F | 1000  1111 |  217  | MOD 111 R/M |                                     | (not used)[0m
+     |            |       |             |                                     |
+  90 | 1001  0000 |  [1;32m220[0m  |             |                                     | [0;32mNOP[0m         (exchange AX,AX)
+  91 | 1001  0001 |  [1;32m221[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mCX[0m
+  92 | 1001  0010 |  [1;32m222[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mDX[0m
+  93 | 1001  0011 |  [1;32m223[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mBX[0m
+  94 | 1001  0100 |  [1;32m224[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mSP[0m
+  95 | 1001  0101 |  [1;32m225[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mBP[0m
+  96 | 1001  0110 |  [1;32m226[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mSI[0m
+  97 | 1001  0111 |  [1;32m227[0m  |             |                                     | [0;32mXCHG[0m        [0;31mAX[0m,          [0;34mDI[0m
+  98 | 1001  1000 |  [1;32m230[0m  |             |                                     | [0;32mCBW[0m
+  99 | 1001  1001 |  [1;32m231[0m  |             |                                     | [0;32mCWD[0m
+  9A | 1001  1010 |  [1;32m232[0m  | DISP-LO     | DISP-HI,SEG-LO,SEG-HI               | [0;32mCALL[0m        [0;31mFAR-PROC[0m
+  9B | 1001  1011 |  [1;32m233[0m  |             |                                     | [0;32mWAIT[0m
+  9C | 1001  1100 |  [1;32m234[0m  |             |                                     | [0;32mPUSHF[0m
+  9D | 1001  1101 |  [1;32m235[0m  |             |                                     | [0;32mPOPF[0m
+  9E | 1001  1110 |  [1;32m236[0m  |             |                                     | [0;32mSAHF[0m
+  9F | 1001  1111 |  [1;32m237[0m  |             |                                     | [0;32mLAHF[0m
+  A0 | 1010  0000 |  [1;32m240[0m  | ADDR-LO     | ADDR-HI                             | [0;32mMOV[0m         [0;31mAL[0m,          [0;34mMEM8[0m
+  A1 | 1010  0001 |  [1;32m241[0m  | ADDR-LO     | ADDR-HI                             | [0;32mMOV[0m         [0;31mAX[0m,          [0;34mMEM16[0m
+  A2 | 1010  0010 |  [1;32m242[0m  | ADDR-LO     | ADDR-HI                             | [0;32mMOV[0m         [0;31mMEM8[0m,        [0;34mAL[0m
+  A3 | 1010  0011 |  [1;32m243[0m  | ADDR-LO     | ADDR-HI                             | [0;32mMOV[0m         [0;31mMEM16[0m,       [0;34mAX[0m
+  A4 | 1010  0100 |  [1;32m244[0m  |             |                                     | [0;32mMOVS[0m        [0;31mDEST-STR8[0m,   [0;34mSRC-STR8[0m
+  A5 | 1010  0101 |  [1;32m245[0m  |             |                                     | [0;32mMOVS[0m        [0;31mDEST-STR16[0m,  [0;34mSRC-STR16[0m
+  A6 | 1010  0110 |  [1;32m246[0m  |             |                                     | [0;32mCMPS[0m        [0;31mDEST-STR8[0m,   [0;34mSRC-STR8[0m
+  A7 | 1010  0111 |  [1;32m247[0m  |             |                                     | [0;32mCMPS[0m        [0;31mDEST-STR16[0m,  [0;34mSRC-STR16[0m
+  A8 | 1010  1000 |  [1;32m250[0m  | DATA-8      |                                     | [0;32mTEST[0m        [0;31mAL[0m,          [0;34mIMMED8[0m
+  A9 | 1010  1001 |  [1;32m251[0m  | DATA-LO     | DATA-HI                             | [0;32mTEST[0m        [0;31mAX[0m,          [0;34mIMMED8[0m
+  AA | 1010  1010 |  [1;32m252[0m  |             |                                     | [0;32mSTOS[0m        [0;31mDEST-STR8[0m
+  AB | 1010  1011 |  [1;32m253[0m  |             |                                     | [0;32mSTOS[0m        [0;31mDEST-STR16[0m
+  AC | 1010  1100 |  [1;32m254[0m  |             |                                     | [0;32mLODS[0m        [0;31mSRC-STR8[0m
+  AD | 1010  1101 |  [1;32m255[0m  |             |                                     | [0;32mLODS[0m        [0;31mSRC-STR16[0m
+  AE | 1010  1110 |  [1;32m256[0m  |             |                                     | [0;32mSCAS[0m        [0;31mDEST-STR8[0m
+  AF | 1010  1111 |  [1;32m257[0m  |             |                                     | [0;32mSCAS[0m        [0;31mDEST-STR16[0m
+  B0 | 1011  0000 |  [1;32m260[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  B1 | 1011  0001 |  [1;32m261[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mCL[0m,          [0;34mIMMED8[0m
+  B2 | 1011  0010 |  [1;32m262[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mDL[0m,          [0;34mIMMED8[0m
+  B3 | 1011  0011 |  [1;32m263[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mBL[0m,          [0;34mIMMED8[0m
+  B4 | 1011  0100 |  [1;32m264[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mAH[0m,          [0;34mIMMED8[0m
+  B5 | 1011  0101 |  [1;32m265[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mCH[0m,          [0;34mIMMED8[0m
+  B6 | 1011  0110 |  [1;32m266[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mDH[0m,          [0;34mIMMED8[0m
+  B7 | 1011  0111 |  [1;32m267[0m  | DATA-8      |                                     | [0;32mMOV[0m         [0;31mBH[0m,          [0;34mIMMED8[0m
+  B8 | 1011  1000 |  [1;32m270[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mAX[0m,          [0;34mIMMED16[0m
+  B9 | 1011  1001 |  [1;32m271[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mCX[0m,          [0;34mIMMED16[0m
+  BA | 1011  1010 |  [1;32m272[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mDX[0m,          [0;34mIMMED16[0m
+  BB | 1011  1011 |  [1;32m273[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mBX[0m,          [0;34mIMMED16[0m
+  BC | 1011  1100 |  [1;32m274[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mSP[0m,          [0;34mIMMED16[0m
+  BD | 1011  1101 |  [1;32m275[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mBP[0m,          [0;34mIMMED16[0m
+  BE | 1011  1110 |  [1;32m276[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mSI[0m,          [0;34mIMMED16[0m
+  BF | 1011  1111 |  [1;32m277[0m  | DATA-LO     | DATA-HI                             | [0;32mMOV[0m         [0;31mDI[0m,          [0;34mIMMED16[0m
+[2m  C0 | 1100  0000 |  300  |             |                                     | (not used)[0m
+[2m  C1 | 1100  0001 |  301  |             |                                     | (not used)[0m
+  C2 | 1100  0010 |  [1;32m302[0m  | DATA-LO     | DATA-HI                             | [0;32mRET[0m         [0;31mIMMED16[0m(intraseg)
+  C3 | 1100  0011 |  [1;32m303[0m  |             |                                     | [0;32mRET[0m         [0;31m[0m(intrasegment)
+  C4 | 1100  0100 |  [1;32m304[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mLES[0m         [0;31mREG16[0m,       [0;34mMEM16[0m
+  C5 | 1100  0101 |  [1;32m305[0m  | MOD REG R/M | (DISP-LO),(DISP-HI)                 | [0;32mLDS[0m         [0;31mREG16[0m,       [0;34mMEM16[0m
+     |            |       |             |                                     |
+  C6 | 1100  0110 |  [1;32m306[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mMOV[0m         [0;31mMEM8[0m,        [0;34mIMMED8[0m
+[2m  C6 | 1100  0110 |  306  | MOD 001 R/M |                                     | (not used)[0m
+[2m  C6 | 1100  0110 |  306  | MOD 010 R/M |                                     | (not used)[0m
+[2m  C6 | 1100  0110 |  306  | MOD 011 R/M |                                     | (not used)[0m
+[2m  C6 | 1100  0110 |  306  | MOD 100 R/M |                                     | (not used)[0m
+[2m  C6 | 1100  0110 |  306  | MOD 101 R/M |                                     | (not used)[0m
+[2m  C6 | 1100  0110 |  306  | MOD 110 R/M |                                     | (not used)[0m
+[2m  C6 | 1100  0110 |  306  | MOD 111 R/M |                                     | (not used)[0m
+     |            |       |             |                                     |
+  C7 | 1100  0111 |  [1;32m307[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mMOV[0m         [0;31mMEM16[0m,       [0;34mIMMED16[0m
+[2m  C7 | 1100  0111 |  307  | MOD 001 R/M |                                     | (not used)[0m
+[2m  C7 | 1100  0111 |  307  | MOD 010 R/M |                                     | (not used)[0m
+[2m  C7 | 1100  0111 |  307  | MOD 011 R/M |                                     | (not used)[0m
+[2m  C7 | 1100  0111 |  307  | MOD 100 R/M |                                     | (not used)[0m
+[2m  C7 | 1100  0111 |  307  | MOD 101 R/M |                                     | (not used)[0m
+[2m  C7 | 1100  0111 |  307  | MOD 110 R/M |                                     | (not used)[0m
+[2m  C7 | 1100  0111 |  307  | MOD 111 R/M |                                     | (not used)[0m
+     |            |       |             |                                     |
+[2m  C8 | 1100  1000 |  310  |             |                                     | (not used)[0m
+[2m  C9 | 1100  1001 |  311  |             |                                     | (not used)[0m
+  CA | 1100  1010 |  [1;32m312[0m  | DATA-LO     | DATA-HI                             | [0;32mRET[0m         [0;31mIMMED16[0m(intersegment)
+  CB | 1100  1011 |  [1;32m313[0m  |             |                                     | [0;32mRET[0m         [0;31m[0m(intersegment)
+  CC | 1100  1100 |  [1;32m314[0m  |             |                                     | [0;32mINT[0m         [0;31m3[0m
+  CD | 1100  1101 |  [1;32m315[0m  | DATA-8      |                                     | [0;32mINT[0m         [0;31mIMMED8[0m
+  CE | 1100  1110 |  [1;32m316[0m  |             |                                     | [0;32mINTO[0m
+  CF | 1100  1111 |  [1;32m317[0m  |             |                                     | [0;32mIRET[0m
+     |            |       |             |                                     |
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROL[0m         [0;31mREG8/MEM8[0m,   [0;34m1[0m
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROR[0m         [0;31mREG8/MEM8[0m,   [0;34m1[0m
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCL[0m         [0;31mREG8/MEM8[0m,   [0;34m1[0m
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCR[0m         [0;31mREG8/MEM8[0m,   [0;34m1[0m
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAL/SHL[0m     [0;31mREG8/MEM8[0m,   [0;34m1[0m
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSHR[0m         [0;31mREG8/MEM8[0m,   [0;34m1[0m
+[2m  D0 | 1101  0000 |  320  | MOD 110 R/M |                                     | (not used)[0m
+  D0 | 1101  0000 |  [1;32m320[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAR[0m         [0;31mREG8/MEM8[0m,   [0;34m1[0m
+     |            |       |             |                                     |
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROL[0m         [0;31mREG16/MEM16[0m, [0;34m1[0m
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROR[0m         [0;31mREG16/MEM16[0m, [0;34m1[0m
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCL[0m         [0;31mREG16/MEM16[0m, [0;34m1[0m
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCR[0m         [0;31mREG16/MEM16[0m, [0;34m1[0m
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAL/SHL[0m     [0;31mREG16/MEM16[0m, [0;34m1[0m
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSHR[0m         [0;31mREG16/MEM16[0m, [0;34m1[0m
+[2m  D1 | 1101  0001 |  321  | MOD 110 R/M |                                     | (not used)[0m
+  D1 | 1101  0001 |  [1;32m321[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAR[0m         [0;31mREG16/MEM16[0m, [0;34m1[0m
+     |            |       |             |                                     |
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROL[0m         [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROR[0m         [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCL[0m         [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCR[0m         [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAL/SHL[0m     [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSHR[0m         [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+[2m  D2 | 1101  0010 |  322  | MOD 110 R/M |                                     | (not used)[0m
+  D2 | 1101  0010 |  [1;32m322[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAR[0m         [0;31mREG8/MEM8[0m,   [0;34mCL[0m
+     |            |       |             |                                     |
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROL[0m         [0;31mREG16/MEM16[0m, [0;34mCL[0m
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mROR[0m         [0;31mREG16/MEM16[0m, [0;34mCL[0m
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCL[0m         [0;31mREG16/MEM16[0m, [0;34mCL[0m
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mRCR[0m         [0;31mREG16/MEM16[0m, [0;34mCL[0m
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAL/SHL[0m     [0;31mREG16/MEM16[0m, [0;34mCL[0m
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSHR[0m         [0;31mREG16/MEM16[0m, [0;34mCL[0m
+[2m  D3 | 1101  0011 |  323  | MOD 110 R/M |                                     | (not used)[0m
+  D3 | 1101  0011 |  [1;32m323[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mSAR[0m         [0;31mREG16/MEM16[0m, [0;34mCL[0m
+     |            |       |             |                                     |
+  D4 | 1101  0100 |  [1;32m324[0m  |  00 001 010 |                                     | [0;32mAAM[0m
+  D5 | 1101  0101 |  [1;32m325[0m  |  00 001 010 |                                     | [0;32mAAD[0m
+[2m  D6 | 1101  0110 |  326  |             |                                     | (not used)[0m
+  D7 | 1101  0111 |  [1;32m327[0m  |             |                                     | [0;32mXLAT[0m        [0;31mSOURCE-TABLE[0m
+  D8 | 1101  1000 |  [1;32m330[0m  | MOD [1;32m000[0m R/M |                                     |
+     |       1XXX |  33X  | MOD YYY R/M | (DISP-LO),(DISP-HI)                 | [0;32mESC[0m         [0;31mOPCODE,SOURCE[0m
+  DF | 1101  1111 |  [1;32m337[0m  | MOD [1;32m111[0m R/M |                                     |
+  E0 | 1110  0000 |  [1;32m340[0m  | IP-INC-8    |                                     | [0;32mLOOPNE/[0m     [0;31mSHORT-LABEL[0m
+     |            |       |             |                                     |  [0;32mLOOPNZ[0m
+  E1 | 1110  0001 |  [1;32m341[0m  | IP-INC-8    |                                     | [0;32mLOOPE/[0m      [0;31mSHORT-LABEL[0m
+     |            |       |             |                                     |  [0;32mLOOPZ[0m
+  E2 | 1110  0010 |  [1;32m342[0m  | IP-INC8     |                                     | [0;32mLOOP[0m        [0;31mSHORT-LABEL[0m
+  E3 | 1110  0011 |  [1;32m343[0m  | IP-INC8     |                                     | [0;32mJCXZ[0m        [0;31mSHORT-LABEL[0m
+  E4 | 1110  0100 |  [1;32m344[0m  | DATA-8      |                                     | [0;32mIN[0m          [0;31mAL[0m,          [0;34mIMMED8[0m
+  E5 | 1110  0101 |  [1;32m345[0m  | DATA-8      |                                     | [0;32mIN[0m          [0;31mAX[0m,          [0;34mIMMED8[0m
+  E6 | 1110  0110 |  [1;32m346[0m  | DATA-8      |                                     | [0;32mOUT[0m         [0;31mAL[0m,          [0;34mIMMED8[0m
+  E7 | 1110  0111 |  [1;32m347[0m  | DATA-8      |                                     | [0;32mOUT[0m         [0;31mAX[0m,          [0;34mIMMED8[0m
+  E8 | 1110  1000 |  [1;32m350[0m  | IP-INC-LO   | IP-INC-HI                           | [0;32mCALL[0m        [0;31mNEAR-PROC[0m
+  E9 | 1110  1001 |  [1;32m351[0m  | IP-INC-LO   | IP-INC-HI                           | [0;32mJMP[0m         [0;31mNEAR-LABEL[0m
+  EA | 1110  1010 |  [1;32m352[0m  | IP-LO       | IP-HI,CS-LO,CS-HI                   | [0;32mJMP[0m         [0;31mFAR-LABEL[0m
+  EB | 1110  1011 |  [1;32m353[0m  | IP-INC8     |                                     | [0;32mJMP[0m         [0;31mSHORT-LABEL[0m
+  EC | 1110  1100 |  [1;32m354[0m  |             |                                     | [0;32mIN[0m          [0;31mAL[0m,          [0;34mDX[0m
+  ED | 1110  1101 |  [1;32m355[0m  |             |                                     | [0;32mIN[0m          [0;31mAX[0m,          [0;34mDX[0m
+  EE | 1110  1110 |  [1;32m356[0m  |             |                                     | [0;32mOUT[0m         [0;31mAL[0m,          [0;34mDX[0m
+  EF | 1110  1111 |  [1;32m357[0m  |             |                                     | [0;32mOUT[0m         [0;31mAX[0m,          [0;34mDX[0m
+  F0 | 1111  0000 |  [1;32m360[0m  |             |                                     | [0;32mLOCK[0m        (prefix)
+[2m  F1 | 1111  0001 |  361  |             |                                     | (not used)[0m
+  F2 | 1111  0010 |  [1;32m362[0m  |             |                                     | [0;32mREPNE/REPNZ[0m
+  F3 | 1111  0011 |  [1;32m363[0m  |             |                                     | [0;32mREP/REPE/REPZ[0m
+  F4 | 1111  0100 |  [1;32m364[0m  |             |                                     | [0;32mHLT[0m
+  F5 | 1111  0101 |  [1;32m365[0m  |             |                                     | [0;32mCMC[0m
+     |            |       |             |                                     |
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-8          | [0;32mTEST[0m        [0;31mREG8/MEM8[0m,   [0;34mIMMED8[0m
+[2m  F6 | 1111  0110 |  366  | MOD 001 R/M |                                     | (not used)[0m
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mNOT[0m         [0;31mREG8/MEM8[0m
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mNEG[0m         [0;31mREG8/MEM8[0m
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mMUL[0m         [0;31mREG8/MEM8[0m
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mIMUL[0m        [0;31mREG8/MEM8[0m
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m110[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mDIV[0m         [0;31mREG8/MEM8[0m
+  F6 | 1111  0110 |  [1;32m366[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mIDIV[0m        [0;31mREG8/MEM8[0m
+     |            |       |             |                                     |
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI),DATA-LO,DATA-HI | [0;32mTEST[0m        [0;31mREG16/MEM16[0m, [0;34mIMMED16[0m
+[2m  F7 | 1111  0111 |  367  | MOD 001 R/M |                                     | (not used)[0m
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mNOT[0m         [0;31mREG16/MEM16[0m
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mNEG[0m         [0;31mREG16/MEM16[0m
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mMUL[0m         [0;31mREG16/MEM16[0m
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mIMUL[0m        [0;31mREG16/MEM16[0m
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m110[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mDIV[0m         [0;31mREG16/MEM16[0m
+  F7 | 1111  0111 |  [1;32m367[0m  | MOD [1;32m111[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mIDIV[0m        [0;31mREG16/MEM16[0m
+     |            |       |             |                                     |
+  F8 | 1111  1000 |  [1;32m370[0m  |             |                                     | [0;32mCLC[0m
+  F9 | 1111  1001 |  [1;32m371[0m  |             |                                     | [0;32mSTC[0m
+  FA | 1111  1010 |  [1;32m372[0m  |             |                                     | [0;32mCLI[0m
+  FB | 1111  1011 |  [1;32m373[0m  |             |                                     | [0;32mSTI[0m
+  FC | 1111  1100 |  [1;32m374[0m  |             |                                     | [0;32mCLD[0m
+  FD | 1111  1101 |  [1;32m375[0m  |             |                                     | [0;32mSTD[0m
+     |            |       |             |                                     |
+  FE | 1111  1110 |  [1;32m376[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mINC[0m         [0;31mREG8/MEM8[0m
+  FE | 1111  1110 |  [1;32m376[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mDEC[0m         [0;31mREG8/MEM8[0m
+[2m  FE | 1111  1110 |  376  | MOD 010 R/M |                                     | (not used)[0m
+[2m  FE | 1111  1110 |  376  | MOD 011 R/M |                                     | (not used)[0m
+[2m  FE | 1111  1110 |  376  | MOD 100 R/M |                                     | (not used)[0m
+[2m  FE | 1111  1110 |  376  | MOD 101 R/M |                                     | (not used)[0m
+[2m  FE | 1111  1110 |  376  | MOD 110 R/M |                                     | (not used)[0m
+[2m  FE | 1111  1110 |  376  | MOD 111 R/M |                                     | (not used)[0m
+     |            |       |             |                                     |
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m000[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mINC[0m         [0;31mMEM16[0m
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m001[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mDEC[0m         [0;31mMEM16[0m
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m010[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mCALL[0m        [0;31mREG16/MEM16[0m(intra)
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m011[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mCALL[0m        [0;31mMEM16[0m(intersegment)
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m100[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mJMP[0m         [0;31mREG16/MEM16[0m(intra)
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m101[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mJMP[0m         [0;31mMEM16[0m(intersegment)
+  FF | 1111  1111 |  [1;32m377[0m  | MOD [1;32m110[0m R/M | (DISP-LO),(DISP-HI)                 | [0;32mPUSH[0m        [0;31mMEM16[0m
+[2m  FF | 1111  1111 |  377  | MOD 111 R/M |                                     | (not used)[0m
